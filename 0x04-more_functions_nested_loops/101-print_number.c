@@ -1,68 +1,34 @@
-#include <math.h>
 #include "main.h"
 
 /**
- * power - exponents
- * @base: base
- * @exp: exponent
- * Return: result (int)
- */
-
-int  power(int base, int exp)
-{
-	int i, num;
-
-	num = 1;
-	for (i = 0; i < exp; ++i)
-		num *= base;
-
-	return (num);
-}
-
-/**
- * print_number - prints an integer
- * @n: number to print
- * Return void
+ * print_number - prints an integer on console
+ * @n: number to be printed
+ *
+ * Return: void, and the stated print
  */
 
 void print_number(int n)
 {
-	int negative = 0;
-	int digit;
-	int divisor;
-	int begin = 0;
-	int place = 10;
-
 	if (n < 0)
-	{
-		negative = 1;
-		n = n * -1;
-	}
-	while (place >= 0)
-	{
-		/*divisor = pow(10, place);*/
-		divisor = power(10, place);
-		digit = ((n / divisor) % 10);
-		if (digit == 0 && begin == 0)
-		{
-			place--;
-		}
-		else if (digit != 0 && begin == 0)
-		{
-			begin = 1;
-			if (negative == 1)
-				_putchar('-');
-			_putchar('0' + digit);
-			place--;
-		}
-		else
-		{
-			_putchar('0' + digit);
-			place--;
-		}
-	}
-	if (digit == 0 && divisor == 1)
-	{
-		_putchar(48);
-	}
+		_putchar('-');
+	print_any_int(n);
+}
+
+/**
+ * print_any_int - uses _putchar to print every digit of any int
+ * @m: input integer to be printed with _putchar
+ *
+ * Return: void, printing every digit of m into stdout
+ */
+void print_any_int(int m)
+{
+	int last;
+
+	if (m / 10)
+		print_any_int(m / 10);
+
+	last = m % 10;
+	if (last < 0)
+		last = last * -1;
+	_putchar(last + '0');
 }
