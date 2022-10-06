@@ -1,67 +1,63 @@
-#include "holberton.h"
 #include <stdlib.h>
+#include "main.h"
+int _strlen(char *s);
 
 /**
- * _strlen - gets string length
- * @string: string
- * Return: length (int)
+ * *string_nconcat - function with two argument
+ * @s1: string type
+ * @s2: string type
+ * @n: size of string
+ *
+ * Description: concatenates two strings
+ * Return: pointer to newly allocated space in memory
  */
-
-int _strlen(char *string)
-{
-	int length;
-
-	length = 0;
-	while (string[length] != '\0')
-	{
-		length++;
-	}
-	return (length);
-}
-
-/**
- * string_nconcat - concatenates two strings
- * @s1: string 1
- * @s2: string 2
- * @n: integer that determines whether entire s2 string will be used
- * Return: pointer to allocated memory corresponding with the string
- */
-
 char *string_nconcat(char *s1, char *s2, unsigned int n)
 {
-	unsigned int length1, length2, lengthc, i, j;
-	char *str;
+	unsigned int i, len, count;
+	char *ptr;
 
 	if (s1 == NULL)
 		s1 = "";
 	if (s2 == NULL)
 		s2 = "";
-	length1 = _strlen(s1);
-	length2 = _strlen(s2);
 
-	if (n >= length2)
-		lengthc = length1 + length2 + 1;
+	len = _strlen(s2);
+
+	if (n >= len)
+		ptr = malloc(sizeof(char) * (_strlen(s1) + _strlen(s2) + 1));
 	else
-	{
-		lengthc = length1 + n + 1;
-		length2 = n;
-	}
-	str = malloc(lengthc);
-	if (str == NULL)
+		ptr = malloc(sizeof(char) * (_strlen(s1) + n + 1));
+	if (ptr == NULL)
 		return (NULL);
 
-	i = 0;
-	while (i < length1)
+	count = 0;
+	while (s1[count] != '\0')
 	{
-		str[i] = s1[i];
+		ptr[count] = s1[count];
+		count++;
+	}
+	i = 0;
+	while (s2[i] != '\0' && i < n)
+	{
+		ptr[count] = s2[i];
+		count++;
 		i++;
 	}
-	j = 0;
-	while (j < length2)
-	{
-		str[i + j] = s2[j];
-		j++;
-	}
-	str[i + j] = '\0';
-	return (str);
+	ptr[count] = '\0';
+	return (ptr);
+}
+
+/**
+ * _strlen - Returns the length of a string
+ * @s: The given string
+ *
+ * Return: The length of the string
+ */
+int _strlen(char *s)
+{
+	int total;
+
+	for (total = 0; s[total] != '\0'; total++)
+		;
+	return (total);
 }
