@@ -1,66 +1,84 @@
 #include "main.h"
-#include <stdarg.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 /**
- * error_handler - handles errors for cp
- * @exit_code: exit code
- * @message: error message
- * @type: data type for format
+ * file1fail - Print error message if can't read file
+ * @file: Name of the file that can't be read
  */
-
-void error_handler(int exit_code, char *message, char type, ...)
+void file1fail(char *file)
 {
-	va_list args;
-
-	va_start(args, type);
-	if (type == 's')
-		dprintf(STDERR_FILENO, message, va_arg(args, char *));
-	else if (type == 'd')
-		dprintf(STDERR_FILENO, message, va_arg(args, int));
-	else if (type == 'N')
-		dprintf(STDERR_FILENO, message, "");
-	else
-		dprintf(STDERR_FILENO, "Error: Does not match any type\n");
-	va_end(args);
-	exit(exit_code);
+	dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file);
+	exit(98);
 }
 
 /**
- * main - copies the content of a file to another file
- * @argc: number of arguments
- * @argv: array of arguments
- * Return:  0 (Always)
+ * file2fail - Print error message if can't write to file
+ * @file: Name of the file that can't be write to
  */
+void file2fail(char *file)
+{
+	dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file);
+	exit(99);
+}
 
+/**
+ * closefail - Print error message if file can't close
+ * @fd: File descriptor of the file
+ */
+void closefail(int fd)
+{
+	dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd);
+	exit(100);
+}
+
+/**
+  * main - copy the content of one file to another
+  * @argc: Number of arguments received
+  * @argv: Array of arguments received
+  *
+  * Return: 0 on success
+  */
 int main(int argc, char *argv[])
 {
-	char buffer[1024];
-	int fd_s, fd_d;
-	ssize_t bytes_read, bytes_written;
+	int file1, file2, file1rd, file2wr, closed;
+	char buffer[BUFSIZE];
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 
 	if (argc != 3)
-		error_handler(97, "Usage: cp file_from file_to\n", 'N');
-
-	fd_s = open(argv[1], O_RDONLY);
-	if (fd_s == -1)
-		error_handler(98, "Error: Can't read from file %s\n", 's', argv[1]);
-
-	fd_d = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0664);
-	if (fd_d == -1)
-		error_handler(99, "Error: Can't write to %s\n", 's', argv[2]);
-
-	while ((bytes_read = read(fd_s, buffer, 1024)) > 0)
 	{
-		bytes_written = write(fd_d, buffer, bytes_read);
-		if (bytes_written == -1)
-			error_handler(99, "Error: Can't write to %s\n", 's', argv[2]);
+		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
+		exit(97);
 	}
-
-	if (bytes_read == -1)
-		error_handler(98, "Error: Can't read from file %s\n", 's', argv[1]);
-	if (close(fd_s) == -1)
-		error_handler(100, "Error: Can't close fd %d\n", 'd', fd_s);
-	if (close(fd_d) == -1)
-		error_handler(100, "Error: Can't close fd %d\n", 'd', fd_d);
-
+	if (argv[1] == NULL)
+		file1fail(argv[1]);
+	if (argv[2] == NULL)
+		file2fail(argv[2]);
+	file1 = open(argv[1], O_RDONLY);
+	if (file1 == -1)
+		file1fail(argv[1]);
+	file2 = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, mode);
+	if (file2 == -1)
+		file2fail(argv[2]);
+	file1rd = read(file1, buffer, BUFSIZE);
+	if (file1rd == -1)
+		file1fail(argv[1]);
+	while (file1rd > 0)
+	{
+		file2wr = write(file2, buffer, file1rd);
+		if (file2wr != file1rd)
+			file2fail(argv[2]);
+		file1rd = read(file1, buffer, BUFSIZE);
+		if (file1rd == -1)
+			file1fail(argv[1]);
+	}
+	closed = close(file1);
+	if (closed == -1)
+		closefail(file1);
+	closed = close(file2);
+	if (closed == -1)
+		closefail(file2);
 	return (0);
+}
